@@ -91,21 +91,54 @@ Kromě toho je užitečné rozlišit metriky na **objektivní** a **subjektivní
 - **Objektivní metrika**: lze ji změřit přímo číselně nezávisle na vnímání (např. LOC – počet řádků kódu, počet tříd, počet funkcí, počet souborů).
 - **Subjektivní metrika**: závisí na vnímání či dojmu (např. čas, který vývojář či uživatel potřebuje k porozumění nové funkcionalitě, nebo „obtížnost" pochopení datového modelu).
 
+Klasifikace metrik:
+
+- **Procesní metriky**: Měří samotný proces vývoje (např. průměrný čas na opravu chyby, počet defektů nalezených při inspekci, produktivita).
+- **Produktové metriky**: Měří vlastnosti samotného softwaru (např. cyklomatická složitost, velikost, výkonnost, code coverage).
+- **Zdrojové (Resource) metriky**: Měří lidské nebo hardwarové zdroje (např. úsilí v člověkoměsících, fluktuace týmu, vytíženost serveru).
+
 Často nás zajímají spíš poměry/odvozené metriky, např. poměr komentářů k celkovému počtu řádků, průměrná velikost metody, odchylky jednotlivých metrik v rámci projektu nebo mezi různými releasy, hustota defektů, atd. Metriky je ale nebezpečné používat k hodnocení výkonu vývojáře.
 
 **Konkrétní metriky:**
 - **Lines of Code (LOC)** - může být hrubým odhadem úsilí, užitečné pro porovnání napříč releasy
 - **(Non)Commented lines of code (CLOC)** – řádky obsahující komentář vs. bez komentáře
+- **(LOC vs. CLOC)**: Nestačí jen vědět, co to je. Ráček se ptá na výhody a nevýhody. Nevýhodou je silná závislost na použitém programovacím jazyce a stylu programátora.
 - **Počet tříd**
 - **Počet funkcí/metod**
 - **Počet packages**
 - **Počet souborů**
 - **Provázanost tříd** – kolik jiných tříd třída A volá (tight coupling), třídy jsou závislé, pokud metoda A používá metody třídy B
 - **Hloubka dědičnosti** – počet vrstev v hierarchii pod dědičností, čím hlouběji je třída ve stromu dědičnosti, tím komplexnější nejspíše je
-- **Cyklomatická složitost (CC)** – počet nezávislých cest ve zkoumané jednotce (funkce/metodě), které se mohou v běhu programu projevit. $CC = E - N + 2P$ kde E = počet hran (větví), N = počet vrcholů (nevětvených bloků) a P = počet vzájemně nepropojených grafů (obvykle P = 1 pro jednu funkci). Nejnižší hodnota CC je 1 (bez větvení). Čím větší komplexita, tím obtížnější testovatelnost.
+- **Cyklomatická složitost (CC)** – počet nezávislých cest ve zkoumané jednotce (funkce/metodě), které se mohou v běhu programu projevit. $CC = E - N + 2P$ kde E = počet hran (větví), N = počet vrcholů (nevětvených bloků) a P = počet vzájemně nepropojených grafů (obvykle P = 1 pro jednu funkci). Nejnižší hodnota CC je 1 (bez větvení). Čím větší komplexita, tím obtížnější testovatelnost. Kód považuje za "špatný" (standardně se uvádí $CC > 10$, tehdy už je funkce příliš složitá na pochopení a plné pokrytí testy)
 - **Váhovaná komplexita třídy** - součet cyklomatických složitostí metod třídy
 - **Reakce na dotaz** - kolik metod (cizích nebo svých tříd) bude třída A volat při zpracování requestu
 - **Nedostatek soudržnosti** - jak souvisí metody třídy s jejíma instančníma proměnnýma
+
+**Datové funkce (Ukládání dat)**
+Tohle jsou entity nebo tabulky, se kterými systém pracuje.
+
+**ILF (Internal Logical File - Interní logický soubor)**: Logická skupina dat, kterou tvůj systém udržuje a mění. Jsou to data, která žijí přímo ve tvé aplikaci.
+
+**Příklad:** Tabulka Zákazníci ve tvé databázi, kam tvůj systém umí přidávat, upravovat a mazat záznamy.
+
+**EIF (External Interface File - Externí soubor rozhraní)**: Logická skupina dat, kterou tvůj systém pouze čte, ale udržuje ji nějaký jiný, externí systém.
+
+**Příklad:** Číselník PSČ nebo aktuální kurzy měn, které si tvůj e-shop pouze stahuje přes API z webu České národní banky, ale nemůže je upravovat.
+
+**Transakční funkce (Zpracování dat)**
+Tohle jsou akce, které uživatel (nebo jiný systém) s aplikací provádí.
+
+**EI (External Input - Externí vstup)**: Proces, při kterém data vstupují do systému zvenčí a upravují vnitřní data (ILF) nebo mění chování systému.
+
+**Příklad:** Odeslání formuláře pro registraci nového uživatele (vytvoří se záznam v ILF).
+
+**EO (External Output - Externí výstup)**: Proces, při kterém data vystupují ze systému ven, přičemž systém musí provést nějaký výpočet, odvození nebo logickou operaci.
+
+**Příklad:** Vygenerování měsíčního reportu tržeb (systém musí projít objednávky, sečíst částky, vypočítat daně a výsledek zobrazit).
+
+**EQ (External Inquiry - Externí dotaz)**: Proces, při kterém data vystupují ze systému ven, ale bez jakéhokoliv výpočtu nebo změny dat. Jde o prosté vytažení a zobrazení dat.
+
+**Příklad:** Zobrazení detailu profilu uživatele na základě jeho ID (systém jen vezme data z DB a zobrazí je, nic nepočítá).
 
 #### **SQALE (Software Quality Assessment Based on Lifecycle Expectations)**
 – metoda hodnocení technického dluhu na základě charakteristik projektu:

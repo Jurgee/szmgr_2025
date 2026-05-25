@@ -47,7 +47,17 @@ Sepisuje se **Project Initiation Documentation** obsahující detailní Business
 
 Dělá se detailní analýza požadavků, spousta Use case diagramů, detailní rozsah sloužící jako základ pro ocenění, design mockupy. Tvoří se **specifikační dokument** produktu - obsahuje požadavky, rozbití systému na komponenty (včetně detailního popisu až po pole vstupních formulářů), očekávanou kvalitu, akceptační kritéria.
 
-Dělá se **projektový plán** (proč, co, kdo, kdy, jak, za kolik...) - **Work Breakdown Structure** tvořená ze specifikačního dokumentu, počítá se čas a cena jednotlivých **Work Packages** (součást WBS, nejnižší jednotka) třeba pomocí [PERT](#program-evaluation-and-review-technique-pert), jejich závislosti, tvoříme rozvrh (gantt/network diagram), přiřazujeme odpovědnosti (mělo by jít snadno najít aktivity člověka i všechny spojené s aktivitou).
+Dělá se **projektový plán** (proč, co, kdo, kdy, jak, za kolik...) - **Work Breakdown Structure** tvořená ze specifikačního dokumentu, počítá se čas a cena jednotlivých **Work Packages** (součást WBS, nejnižší jednotka) třeba pomocí [PERT](#program-evaluation-and-review-technique-pert), jejich závislosti, tvoříme rozvrh (gantt/network diagram), přiřazujeme odpovědnosti (mělo by jít snadno najít aktivity člověka i všechny spojené s aktivitou). 
+
+**Pozor na rozdíl Člověkoden (Man-Day / MD) vs. Kalendářní čas:** MD je jednotka **úsilí (pracnosti)**, nikoliv času. Úkol o velikosti 10 MD znamená, že zabere 10 dní *jednomu* člověku. Pokud na něj nasadíme 5 lidí, může teoreticky trvat jen 2 kalendářní dny. Do kritické cesty (CPM) se vždy dosazuje kalendářní *délka trvání*, ne absolutní úsilí. (Pozor na *Brooksův zákon*: Přidání lidí do zpožděného SW projektu ho obvykle ještě více zpozdí kvůli režii na komunikaci).
+
+#### Chronologický postup prediktivního plánování (Státnicový chyták)
+Zkoušející často nachytají studenty na otázce: „Co uděláte při plánování jako první? Gantt, nebo síťový graf?“ Správná odpověď je **WBS**. Postup musí jít striktně v tomto pořadí:
+1.  **Dekompozice rozsahu (WBS):** Rozbití celého systému na nejmenší řiditelné celky (**Work Packages**). Bez toho nelze plánovat dál.
+2.  **Odhad pracnosti a zdrojů:** Každému Work Package přiřadíme potřebné úsilí (např. pomocí PERT) a určíme, kdo ho bude dělat.
+3.  **Sestavení síťového grafu:** Definujeme logické závislosti mezi úkoly (co na co navazuje).
+4.  **Výpočet kritické cesty (CPM):** Zjistíme matematické trvání projektu a kritické úkoly.
+5.  **Vykreslení do časové osy (Ganttův diagram):** Teprve na základě všech předchozích kroků vzniká Gantt jako vizuální kalendářní plán.
 
 *WBS*
 
@@ -93,12 +103,17 @@ Prevence:
 - **Krátké iterace** - brzo zjistíme, co je případně blbě
 
 ### Role modelů v projektovém řízení
+V softwarovém projektovém řízení slouží modely především k **odhadování pracnosti (effort), času a ceny** projektu na základě historických dat a metrik. Zkoušející chtějí slyšet tyto dva hlavní přístupy:
 
-Těžko říct, co se tím myslí; v přednáškách PA179 žádná významná zmínka o modelech nebyla. Datové modely? Modelování komunikace, financí, rizik?
+* **Metoda funkčních bodů (Function Points - FP):** Odhaduje velikost SW z pohledu uživatele (počet vstupů, výstupů, dotazů, interních souborů). Je nezávislá na technologii.
+* **Model COCOMO (Constructive Cost Model) a COCOMO II:** Algoritmetický model, který odhaduje pracnost v člověkoměsících (Person-Months) a kalendářní čas na základě velikosti kódu (KLOC - tisíce řádků kódu) a produktivních faktorů (zkušenost týmu, složitost platformy).
 
-V řízení lze modely použít při plánování projektů pomocí [síťové analýzy](#síťová-analýza), [metody kritické cesty](#metoda-kritické-cesty-cpm).
+COCOMO rozlišuje **3 vývojové módy (kontexty projektu)**, na které se doc. Ráček velmi často ptá:
+1.  **Organic (Organický):** Malé projekty, známé prostředí, malý a zkušený tým, flexibilní požadavky (např. interní firemní nástroj). Nízká režie řízení.
+2.  **Semi-detached (Polorozdělený):** Střední projekty, smíšený tým (zkušení i nezkušení), část požadavků je striktní, část volnější. Vyšší nároky na koordinaci.
+3.  **Embedded (Vestavěný / Integrovaný):** Komplexní projekty s extrémně přísnými omezeními (např. řízení letového provozu, bankovní jádro, embedded medicínský software). Požadavky jsou pevné, procesy rigidní, obrovská režie na testování a dokumentaci.
 
-Dále je možné modelovat procesy (komunikace), finance, rizika... a na těchto modelech hledat kritická místa, zkoumat co by kdyby...
+Dále sem spadají **matematické modely řízení** (síťové grafy CPM/PERT), které modelují projekt jako matematický graf a hledají v něm kritická místa (úzká hrdla).
 
 ## Ganttovy diagramy, síťová analýza, metoda kritické cesty (CPM), Program Evaluation and Review Technique (PERT) (2/4)
 
@@ -132,9 +147,24 @@ Cílem je projekt naplánovat, minimalizovat prostoje a náklady, určit termín
 
 Používá se pro to síťový graf hranově/uzlově orientovaný - úlohy jsou na hranách/uzlech. Uzlově orientovaný umožňuje snadno modelovat precedenční podmínky, lze snadno použít pro metodu kritické cesty.
 
+* **AON (Activity-on-Node / Uzlově orientovaný):** * **Uzly** představují samotné aktivity (činnosti, např. "Programování backendu").
+    * **Hrany (šipky)** představují logické závislosti mezi nimi.
+    * *Využití:* Mnohem častější v moderním softwaru (Jira, MS Project), protože se v něm snadno modelují složitější závislosti (např. SS, FF).
+* **AOA (Activity-on-Arrow / Hranově orientovaný):**
+    * **Hrany (šipky)** představují samotné aktivity, které spotřebovávají čas a zdroje.
+    * **Uzly** představují **události / milníky (milestones)** – okamžik, kdy jedna činnost končí a druhá začíná (mají nulové trvání).
+    * *Využití / Výhoda:* Zkoušející chtějí slyšet, že AOA se skvěle hodí pro přirozené zobrazení milníků přímo v grafech. Někdy vyžaduje zavedení "fiktivních hran" (dummy activities) s nulovým časem pro zachování logiky grafu.
+
 ### Metoda kritické cesty (CPM)
 
 Metoda pro identifikaci vzájemně závislých aktivit, které mají vliv (jsou kritické) na dobu dokončení projektu a nemohou být opožděny bez prodloužení dokončení projektu.
+
+#### 4 typy precedenčních závislostí (Chyták na tabuli)
+Při výpočtu CPM na tabuli vám zkoušející nemusí dát jen klasickou následnost. Musíte znát všechny čtyři typy vazeb:
+* **FS (Finish-to-Start / Konec-Start):** Nejběžnější. Úloha B může začít až poté, co úloha A skončí (např. Testování začne až po dokončení Implementace).
+* **SS (Start-to-Start / Start-Start):** Úloha B může začít hned, jakmile začne úloha A. Mohou běžet paralelně (např. S programováním frontendů se může začít hned, jak se začne programovat backend).
+* **FF (Finish-to-Finish / Konec-Konec):** Úloha B může skončit až tehdi, kdy skončí úloha A (např. Dokumentace celého systému může být hotová/skončená až v momentě, kdy skončí implementace poslední komponenty).
+* **SF (Start-to-Finish / Start-Konec):** Velmi vzácná. Úloha B může skončit až poté, co úloha A začne.
 
 [Postup](https://www.youtube.com/watch?v=4oDLMs11Exs):
 

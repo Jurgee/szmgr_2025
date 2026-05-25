@@ -84,15 +84,32 @@ tj. nejprve sesbíráme všechny požadavky, pak sw jako celek postupně navrhne
 - navrhni systém a implementuj ho. Vyhovuje? Super. Nevyhovuje? Zpět k návrhu/implementaci
 - nelze pořádně řídit, neexistuje dokumentace, řešitelé jsou obtížně nahraditelní, jde o experimentování
 
-### V procesní model
+### V-model
+
+![](img/vmodel.png)
 
 - ala vodopád, ale zobrazuje i různé testy k fázím (jednotkové, integrační, systémové, uživatelské, akceptační...)
+
+1. Požadavky / Use Casy $\rightarrow$ Validují se pomocí Akceptačních testů (ověření se zákazníkem, zda systém dělá to, co měl).
+2. Analýza systému / Architektura $\rightarrow$ Verifikuje se pomocí Systémových testů (testuje se systém jako celek, včetně nefunkčních požadavků jako výkon či bezpečnost).
+3. Detailní návrh (komponenty a subsystémy) $\rightarrow$ Ověřuje se pomocí Integračních testů (zda komponenty přes definovaná rozhraní správně spolupracují).
+4. Implementace (třídy a metody) $\rightarrow$ Pokrývá se pomocí Jednotkových testů (Unit testy přímo nad kódem).
 
 Nezávisle na modelu je důležité nastavit správnou komunikaci, definovat a používat jednotný jazyk. Pokud chceme cokoliv řídit, je potřeba mít informace o aktuálním stavu, dodržování plánu, očekávaných změnách, problémech...
 
 Hlavní metodiky řízení sw projektů jsou **prediktivní metodiky (např. RUP)** a **agilní (např. SCRUM)**.
 
 ## Metodika (Rational) Unified Process (UP, RUP) (2/5)
+
+Při popisu charakteristického RUP/UP diagramu (tzv. hump chart nebo vlnový diagram) chtějí zkoušející slyšet, že diagram zachycuje dvě dimenze vývoje softwaru:
+
+**Sloupečky (Dimenze časová / dynamická)**: Představují časovou osu projektu rozdělenou do 4 hlavních fází (Inception, Elaboration, Construction, Transition), přičemž každá fáze se dál dělí na jednotlivé iterace.
+
+**Státnicový chyták:** Fáze nejsou totéž co jedna iterace! Fáze pokrývají celý životní cyklus projektu od začátku do konce a každá z nich se skládá z jedné či více dílčích iterací.
+
+**Řádky (Dimenze obsahová / statická)**: Představují jednotlivé disciplíny / workflows (např. Business Modeling, Requirements, Analysis & Design, Implementation, Test, Deployment a podpůrné disciplíny jako Configuration & Change Management, Project Management, Environment).
+
+**Vlnovky (Humps)**: Výška plochy v daném místě vyjadřuje intenzitu úsilí/práce, kterou tým konkrétní disciplíně v dané iteraci věnuje. Například v rané fázi Inception je vlnovka u disciplíny Requirements velmi vysoká, zatímco u Implementation je téměř nulová. V průběhu Construction se tento poměr obrací.
 
 - rigidní, důraz na procesy
 - vhodná, pokud máme jasné a pevné požadavky, variabilní aspekty mohou být čas a zdroje
@@ -146,20 +163,34 @@ Iterace jsou seskupovány do fází:
 
 Iterace by neměla překročit 3 měsíce, přínos iterace je **inkrement**, každá iterace obsahuje workflows, které jsou více či méně přítomné. Pro každé workflow se používají určité UML diagramy:
 
-- **Business modelování** - kdo jsou stakeholders, jaké jsou jejich potřeby, jaké jsou obchodní cíle?
-    - activity diagram
+- **Business modelování**
+    - **activity diagram** - popisuje obchodní procesy, které se mají řešit
 - **Požadavky**
-    - use case diagram
+    - **use case diagram** - definuje hranice systému, aktory a jejich interakce s funkcionalitou systému
 - **Analýza a návrh**
-    - sequence, collaboration diagrams
+    - **sequence diagram** - Interakční diagramy, které ukazují, jak si objekty mezi sebou posílají zprávy, aby realizovaly konkrétní scénář z Use Case diagramu.
+    - **class diagram** - Zobrazuje klíčové pojmy z reálného světa a vztahy mezi nimi (např. Zákazník, Objednávka, Faktura), bez programátorských detailů.
 - **Implementace**
-    - class, object, component diagrams
+    - **class diagram** - Už obsahuje konkrétní datové typy, viditelnosti (public/private) a metody, ze kterých lze přímo generovat kód.
+    - **component diagrams** - Ukazuje fyzické uspořádání kódu – moduly, knihovny (JAR, DLL), zdrojové soubory a jejich vzájemné závislosti.
 - **Testování**
-    - use case, class, activity diagrams
+    - **use case** - Slouží jako přímý podklad pro akceptační testy (Acceptance Tests) a systémové funkční testy
+    - **class diagram** - Základní stavební kámen pro vývojáře při psaní jednotkových testů (Unit Tests)
+    **activity diagrams** - Vynikající podklad pro tvorbu integračních a end-to-end (E2E) testů
 - **Deployment**
-    - deployment diagram
+    - **deployment diagram** - zobrazuje fyzické uspořádání systému – servery, databáze, síťové prvky a jak jsou mezi sebou propojené
 
 RUP je konkrétní komerční metodika stavějící na UP (přidává třeba jednotlivé role a odpovědnosti v týmu, konkrétní postupy...), UP je obecný rámec.
+
+**Iterativní vývoj (Evoluce celku):** Vývoj probíhá v opakovaných cyklech (iteracích). V každé iteraci se bere v úvahu celý systém (nebo jeho podstatná část) a ten se postupně zahušťuje, vylepšuje a zpřesňuje.
+
+**Metafora:** Jako když malíř nejdřív naskicuje celou kompozici uhlem na celé plátno, pak v další iteraci přidá základní barvy všude a v poslední iteraci vykresluje detaily. V UP to odpovídá např. fázi Elaboration, kde se definuje a ověřuje architektura celého systému na základě klíčových use casů.
+
+**Inkrementální vývoj (Stavba po kusech):** Systém se vyvíjí a dodává po samostatných, kompletně dokončených částech – přírůstcích (inkrementech).
+
+**Metafora:** Jako když stavíš dům pokoj po pokoji – nejdříve kompletně postavíš, vymaluješ a vybavíš kuchyň, pak obývák, pak ložnici. V UP to odpovídá fázi Construction, kde se v každé iteraci implementují a dokončují konkrétní sady funkcionalit.
+
+**Propojení v UP:** UP je iterativní i inkrementální zároveň. Je iterativní, protože v každé jednotlivé iteraci tým prochází všemi disciplínami (od analýzy přes kódování po testování) a produkt se evolučně zpřesňuje. Je inkrementální, protože výstupem každé dokončené iterace musí být spustitelný, otestovaný a stabilní přírůstek kódu (executable architecture/increment), který rozšiřuje předchozí verzi.
 
 ## Agilní metodiky a principy agilního vývoje SW (3/5)
 

@@ -55,6 +55,15 @@ Nějaká jednoduchá architektura by mohla vypadat takto:
 - **databáze** (např. konkrétní databáze `eshop`, `crm`, `test_db` v rámci RDBMS)
   - samotné místo, kde jsou data uložena
 
+#### Vnitřní komponenty RDBMS (Co se děje při zpracování dotazu)
+Když do databáze dorazí SQL dotaz, prochází specifickými vnitřními subsystémy RDBMS:
+
+1.  **Parser a Překladač (Query Parser):** Zkontroluje syntaktickou správnost SQL dotazu a převede ho do interního stromu reprezentujícího operace relační algebry.
+2.  **Optimalizátor dotazů (Query Optimizer):** **Klíčová část.** Na základě statistik o tabulkách (počet řádků, distribuce hodnot v indexech) vygeneruje několik prováděcích plánů (Execution Plans) a vybere ten s nejnižší odhadovanou cenou (Cost-based optimizer). Rozhoduje, zda se použije Index Scan nebo Sequential Scan.
+3.  **Prováděcí engine (Execution Engine):** Vykonává zvolený plán a komunikuje se správcem úložiště.
+4.  **Buffer Manager (Správce vyrovnávací paměti):** RDBMS nečte data přímo z disku po bajtech, ale v tzv. **Stránkách / Blozích** (Pages/Blocks, typicky 8 KB). Buffer Manager udržuje nejčastěji používané stránky v RAM. Pokud engine potřebuje data, Buffer Manager je vyhledá v RAM, a až při minoutí (Cache Miss) je načte z disku.
+5.  **Storage Manager (Správce úložiště):** Mapuje logické struktury (tabulky, indexy) na fyzické soubory na disku a alokuje prostor.
+6.  **Transaction & Recovery Manager:** Řídí zamykání dat (izolaci) a zápis žurnálu (zajišťuje trvanlivost).
 RDBMS může obsahovat techniky pro administraci přístupových práv (omezení určitých operací, viditelnost dat až na row/column level...).
 
 Pokud se otázkou myslí *Z jakých prvků se relační databáze skládají*, pak by bylo fajn mluvit o tabulkách, sloupcích, jazyku SQL pro jejich definici (DDL, data definition language) a manipulaci (DML, data manipulation language), indexech, (materializovaných) views...
@@ -219,9 +228,17 @@ Transakce v RDBMS mají ACID vlastnosti:
 - **Atomicity** - skupina příkazů transakce brána jako jednotka; provedou se všechny, nebo žádný
 - **Consistency** - po vykonání transakce je db v konzistentním stavu, není porušeno žádné integritní omezení
 - **Isolation** - transakce je izolovaná od ostatních transakcí, je možné nastavit úrovně transakce, dle toho může transakce skončit chybou (pokud došlo k modifikaci stejného objektu, jaký modifikovala jiná transakce), nebo se využijí zamykací mechanismy
+  * **Dirty Read (Špinavé čtení):** Transakce T1 čte data, která transakce T2 změnila, ale ještě nepotvrdila (COMMIT). Pokud T2 udělá ROLLBACK, T1 pracovala s neexistujícími daty.
+  * **Non-repeatable Read (Neopakovatelné čtení):** Transakce T1 načte řádek. Transakce T2 tento řádek změní a potvrdí (COMMIT). Pokud T1 načte stejný řádek znovu, dostane jiné hodnoty.
+  * **Phantom Read (Fantomové čtení):** Transakce T1 načte množinu řádků splňující podmínku (např. `price > 100`). Transakce T2 vloží (INSERT) nový řádek splňující tuto podmínku a potvrdí. Pokud T1 dotaz zopakuje, objeví se tam nový „fantomový“ řádek.
 - **Durability** - data jsou po vykonání transakce persistentně uložena
 
 Transakce se potvrzují příkazem `COMMIT`, vrací příkazem `ROLLBACK` na stav před započením transakce, či po poslední `SAVEPOINT`
+
+#### Jak se izolace a trvanlivost implementuje v praxi:
+* **2PL (Two-Phase Locking):** Tradiční pesimistické zamykání. Transakce v první fázi zámky pouze získává (sdílené pro čtení, exkluzivní pro zápis) a ve druhé fázi po COMMITu je uvolňuje. Způsobuje zablokování čtenářů zapisovateli a naopak.
+* **MVCC (Multi-Version Concurrency Control):** Moderní optimistický přístup (PostgreSQL). Zapisovatelé neblokují čtenáře. Při změně řádku se nevytváří přepis, ale nová verze řádku s informací o čase/transakci (`xmin`, `xmax`). Každá transakce pak vidí „snímek“ (snapshot) dat odpovídající jejímu startu. Staré verze čistí na pozadí proces (v PG např. `VACUUM`).
+* **WAL (Write-Ahead Logging) / Žurnálování:** Zajišťuje **Durability**. Než se změněná data (dirty pages) zapíšou z RAM na pomalý disk do samotných tabulek, zapíše se sekvenční záznam o změně do logu na disku (WAL). Zápis do WAL je extrémně rychlý (pouze append). Pokud systém spadne, Transaction Manager při startu projde WAL a provede operaci **REDO** (pro potvrzené transakce) a **UNDO** (pro rozepsané transakce, které nestihly COMMIT).
 
 ## Indexování, hašování (6/7)
 
@@ -239,6 +256,11 @@ Pro indexy se mohou používat:
 - **haše** - pro získání jednoduché hodnoty velkých dat, neumožňují range scans nebo ordering.
 - **B+ stromy** - každý uzel obsahuje odkazy na uzly níže, nebo hodnoty (jedná se o listový uzel). Hodnoty jsou v listech vzestupně uspořádány, uzly v sobě mají i informace o intervalech daných odkazů/hodnot, listy jsou provázané. nejvíce používané.
   ![](img/20230526220652.png)
+Speciální n-árně vyvážené stromy optimalizované pro bloková disková úložiště. 
+    * **Klíčový rozdíl oproti B-stromům:** Vnitřní uzly (internal nodes) obsahují **pouze navigační klíče a pointery** na další uzly, ale neobsahují samotná data řádků (ani pointery na data). Všechna data/pointery na reálné řádky jsou uloženy **výhradně v listových uzlech (leaf nodes)**.
+    * **Proč jsou ideální pro DB:** 
+      1. Vnitřní uzly jsou díky absenci dat malé $\rightarrow$ do jedné diskové stránky (8 KB) se vejde obrovské množství navigačních klíčů $\rightarrow$ strom má obrovský větvící faktor (**High Fan-out**) a je velmi nízký (zpravidla výška 3 až 4 i pro miliony záznamů). Na nalezení jakéhokoliv záznamu stačí max 3–4 diskové operace (I/O).
+      2. Všechny listové uzly jsou **obousměrně lineárně provázané** (linked list). Pokud DB provádí rozsahový dotaz (`WHERE price BETWEEN 10 AND 50`), vyhledá prvek `10` a pak už jen sekvenčně čte sousední listy, nemusí se vracet nahoru do stromu (tzv. Range Scans jsou extrémně rychlé).
 - **B stromy** - podobné jako B+, ale uzly mohou obsahovat i hodnoty, ne pouze odkazy na další uzly. liste nejsou provázané, ale jsou na stejné úrovni, jinak podobné jako B+.
 - **R stromy** - podobné jako B+, ale jsou vícedimenzionální, ve 2D fungují jako obdélníky. Data jsou v listových uzlech stromu. Rodič uzlu zahrnuje všechny své potomky (ve 2D jde o větší obdélník, který obsahuje potomky). Ideální je, aby zabíraly rodičovské obdélníky co nejméně prostoru - rodič totiž jako index redukuje oblast nutnou k prohledání (říká *hledej ve mně!*). Třeba pro geodata.
   ![](img/20230526220927.png)
@@ -266,6 +288,20 @@ Pro různé účely používáme různé algoritmy, jde o balanc rychlosti (u he
 - rodina Secure Hashing Algorithm, za bezpečnou se aktuálně považuje **SHA-2** (SHA256, SHA512, SHA-384...)
 - **Argon2** - v současnosti doporučovaný pro hašování hesel
 - hashem (hloupým, ale rychlým) může být třeba i délka vstupu, modulo, součet ascii hodnot znaků... (nazývá se [Cyclic redundancy check](dev_4_bezpecny_kod.md#notes))
+
+#### Databázové (nekryptografické) vs. Kryptografické hašování (Švendův státnicový chyták)
+U zkoušky (dr. Švenda) musíte striktně rozlišovat účel hašování:
+* **Indexové / HashMap hašování:** Používá se pro Hash Indexy v DB. Cílem je **maximální rychlost** výpočtu a rovnoměrná distribuce do paměťových kapes (buckets). Používají se algoritmy jako *MurmurHash* nebo *CityHash*. 
+* **Proč jsou zde kryptografické funkce (SHA-2, SHA-3) nevhodné?** Jsou pro indexování zbytečně výpočetně extrémně drahé (**overkill**). U indexu nepotřebujeme vlastnosti jako jednosměrnost nebo odolnost proti nalezení preimage (nikdo se nesnaží z hashe v indexu zpětně hacknout hodnotu ID).
+
+#### Řešení kolizí a typy hašování v DB
+Když dvě různé hodnoty vygenerují stejný index kapsy (bucketu), nastává kolize. Řeší se:
+1.  **Zřetězené hašování (Chaining / Kapsy):** Každý bucket ukazuje na spojový seznam (kapsu) záznamů. Pokud se zaplní, lineárně se prochází nebo se napojí přetoková kapsa.
+2.  **Otevřená adresace (Open Addressing):** Pokud je bucket obsazen, hledá se podle definovaného pravidla (Linear Probing) další volné místo přímo v hlavním poli.
+
+Podle správy velikosti pole dělíme hašování na:
+* **Statické hašování:** Počet bucketů je fixní. Při zaplnění databáze rapidně roste počet kolizí a výkon degraduje (dlouhé spojové seznamy v kapsách).
+* **Dynamické hašování (Extensible / Linear Hashing):** Velikost hašovací tabulky se dynamicky přizpůsobuje (roste/zmenšuje se) počtu dat. Využívá se bitová reprezentace hashe. Při reorganizaci (split bucketu) se nepřepočítává celá tabulka, ale rozděluje se vždy jen jedna konkrétní kapsa.
 
 ## Příklady z praxe pro vše výše uvedené (7/7)
 

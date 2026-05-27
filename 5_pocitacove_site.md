@@ -45,6 +45,15 @@ Směrování probíhá pomocí směrovacích tabulek routerů - na základě adr
 
 V praxi se ujal model TCP/IP, který jednotlivé vrstvy ISO/OSI slučuje.
 
+*Státnicový chyták: Zkoušející (např. Rebok, Čeleda) se často ptají: „Co všechno se musí stát na síťové úrovni, když ráno přijdete na FI, otevřete notebook a napíšete do prohlížeče is.muni.cz?“ Musíte umět vysvětlit tento postup z pohledu protokolů:*
+
+1.  **Fyzické připojení:** Notebook se připojí přes Access Point (L1/L2, např. 802.11 Wi-Fi).
+2.  **Získání síťové konfigurace (DHCP):** Notebook (přes UDP broadcast) požádá DHCP server o IP adresu, Masku, IP výchozí brány (Gateway) a IP adresu DNS serveru. *Bez tohoto nemůže komunikovat mimo lokální síť.*
+3.  **Překlad adresy (DNS):** Aplikace (prohlížeč) zná jen jméno `is.muni.cz`. Přes UDP port 53 pošle dotaz na DNS server: "Jaká IP adresa patří k tomuto jménu?"
+4.  **Hledání cesty k bráně (ARP):** Aby notebook mohl odeslat HTTP paket ven, musí ho na lokální síti doručit výchozí bráně. Zná její IP (z DHCP), ale potřebuje MAC adresu. Odešle ARP broadcast: "Kdo má IP adresu Gatewaye? Pošli mi MAC." (L2 vrstva).
+5.  **Ustavení TCP spojení a TLS Handshake:** Nyní může na cílovou IP (IS MUNI) odeslat TCP SYN (port 443 pro HTTPS). Po Three-way handshake proběhne vyjednávání klíčů přes TLS (zabezpečení L4/L7).
+6.  **HTTP Request / Response:** Až po tomto všem odešle aplikační data (HTTP GET) a server odpoví (HTTP 200 OK + HTML). Po cestě překládají routery zdrojovou interní IP adresu na veřejnou pomocí NATu.
+
 ### TCP/IP
 
 4 vrstvy:
@@ -108,6 +117,7 @@ V praxi se ujal model TCP/IP, který jednotlivé vrstvy ISO/OSI slučuje.
     - interně vrstva transformuje bity na signály přenosového média, zajišťuje synchronizaci, multiplexing (skloubení více signálů/datových toků do jednoho pro přenos na sdíleném médiu, časový/frekvenční/vlnodélkový multiplexing), demultiplexing...
     - médiem může být drátový/optický kabel, vzduch (pro bezdrátový přenos, rádiové/infračervené signály...)
 
+*Státnicový chyták:* Komisi nestačí odpověď, že na fyzické vrstvě "se přenáší signál". Chtějí slyšet, že **logickou** jednotkou přenosu na této vrstvě jsou **bity (jedničky a nuly)**, které se následně (např. pomocí modulace či kódování) fyzicky reprezentují jako změny napětí, světelné pulzy (optika) nebo elektromagnetické vlnění.
 ### IP protokol
 
 - Zajišťuje doručení IP datagramů (data rozřezaná na kousky s obálkou) v rámci internetu host-to-host (i přes prostředníky, a.k.a. routery), síť je connection-less, paketová
@@ -229,6 +239,11 @@ kvůli nedostatku se začala používat i maska sítě (CIDR)
 
 127.0.0.1 je loopback
 
+#### Maska sítě, Gateway a NAT (Častá státnicová otázka)
+*Otázka komise: „Co vše potřebuji na PC zadat kromě IP adresy, aby se správně načetla síť? K čemu to slouží?“*
+* **Maska podsítě (Subnet mask):** Určuje, která část IP adresy je identifikátor sítě (network ID) a která část je identifikátor zařízení (host ID). Používá se k tomu logický AND s IP adresou. Zásadní účel: Počítač podle ní pozná, jestli cílový počítač, se kterým chce komunikovat, leží v *jeho* lokální síti (pošle mu data přímo přes MAC/switch), nebo jestli je v *cizí* síti (pošle data přes router).
+* **Výchozí brána (Default Gateway):** IP adresa routeru v naší lokální síti. Je to "dveřník ven". Pokud počítač zjistí (díky masce), že cíl leží mimo jeho síť, zabalí paket a pošle ho (přes MAC) na bránu, aby ho doručila dál do Internetu.
+* **NAT (Network Address Translation):** Řešení vyčerpání IPv4 adres. Umožňuje desítkám zařízení v domácnosti mít lokální (privátní) IP (např. `192.168.x.x`), které se ven do Internetu vůbec nedostanou. Router obsahuje tabulku a jakýkoli požadavek jdoucí zevnitř "přepíše" tak, jako by ho posílal on sám (ze své jedné veřejné IP), přičemž zprávu označí specifickým portem (PAT - Port Address Translation), aby věděl, komu v domácnosti má doručit odpověď.
 ### Pokročilé funkce IPv6
 
 - řeší problém nedostatku IPv4 adres 128 bitovou délkou
@@ -322,6 +337,11 @@ Např.:
 
 Service discovery lze pomocí záplavy sítě dotazy (nestrukturované sítě, každý peer zodpovídá za svá data/služby, zpráva má TTL pro prevenci zahlcení, je možné použít DFS/BFS/IDS/heuristiky/náhodné procházky... na základě most promising), nebo je nějaký registr (strukturované sítě, registr je centrální, a/nebo data jsou v distribuované tabulce, skip listu...), případně jako registr slouží vybraní peerové (hybridní sítě).
 
+#### Vyhledávání dat v P2P sítích (Strukturované vs. Nestrukturované)
+Rozlišujeme dva extrémy, jak P2P sítě hledají informace:
+* **Nestrukturované (např. Gnutella, raný BitTorrent s trackery):** Data jsou uložena libovolně u uzlů, které si je stáhly. Hledání probíhá buď formou centrálního registru (tzv. Trackeru, který spojuje klienty vlastnící hledaný kus), nebo "zaplavováním" (Flooding) – zeptám se 5 sousedů, ti se zeptají dalších 5 sousedů atd. Neefektivní, způsobuje enormní síťový provoz. Navíc není garantováno, že data najdu, i když v síti existují.
+* **Strukturované (např. Kademlia / DHT):** Založené na distribuovaných hašovacích tabulkách (**DHT**). Topologie overlay sítě je přísně kontrolována. Každý uzel dostane vygenerované ID (např. 160bit hash). I samotná data dostanou generované ID (hash souboru). V síti platí pravidlo, že uzly ukládají ta data, jejichž hash je nejblíže jejich vlastnímu hashi. Hledání je logaritmicky rychlé ($O(log N)$) a deterministické – pokud data existují, vždy je najdu, protože přesně vím, jakým směrem jehledat.
+* **Churn:** Fenomén P2P sítí, který označuje neustálou a rychlou změnu v tom, jak se uzly (peers) chaoticky připojují k síti a okamžitě ji opouštějí (např. stáhnou film a vypnou klienta). Síť to musí kompenzovat robustní redundancí a neustálou updatovací režií svých stavových informací.
 #### Topologie overlay
 
 Topologie overlay (jak jsou mezi sebou peerové vzájemně provázaní) určuje celkovou výkonost p2p sítě. Snažíme se vyhnout lineárním formacím, splitům.

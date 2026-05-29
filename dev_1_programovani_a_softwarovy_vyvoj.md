@@ -82,11 +82,19 @@ Více v [Bezpečný kód](dev_4_bezpecny_kod.md)
 - **Session based** - uživatel poskytne údaje, server vydá cookie, kterou si udržuje (db/paměť). Uživatel následně s každým požadavkem zasílá cookie, podle které server ověří a rozpozná uživatele
 - **Token based** - uživatel ověří svou identitu, server zapouzdří údaje o uživateli do tokenu, který podepíše, čímž zajistí, že je možné detekovat modifikaci. Uživatel následně zasílá token, kterým prokazuje svou totožnost, mohou zde být i informace o právech. Na rozdíl od sessions nemusí díky certifikátům servery nic držet v paměti, jde o řešení vhodné pro použití s více servery/systémy, nebo když se uchovávají sessions v databázi a databáze začíná být bottleneck. Tokeny se nedají revokovat ze strany serveru => dává se časově omezená platnost
 - Pokud nám nevadí používat autorizaci poskytnutou třetí stranou, bývá nejbezpečnější a nejjednodušší řešení použít federalizovanou identitu. Pokud opravdu chceme ukládat uživatelská hesla, ukládáme heše (se solí) získané aktuálně doporučovaným Argon2 (může se změnit).
+- Hesla se nikdy neukládají v plaintextu, ale jako hash
+- Hashovací funkce musí být jednosměrná a pomalá proti brute-force útokům
+- **Salt** = náhodná hodnota přidaná k heslu před hashováním
+  - zabraňuje rainbow table útokům
+  - stejné heslo různých uživatelů má odlišný hash
+- moderní algoritmy: Argon2, bcrypt, scrypt
 
 #### Autorizace
 
 - Ověření práv k určité akci
-
+- **ACL (Access Control List)** - seznam pravidel určujících, který uživatel nebo role má jaká oprávnění ke konkrétnímu zdroji (read/write/execute)
+- používá se například v souborových systémech, databázích nebo API gateway
+- alternativa k RBAC (Role-Based Access Control)
 ### Používané technologie
 
 - **HTTP basic** - http header `Authorization: Basic <data>`, kde `<data>` jsou `<jméno>:<heslo>` v base64
@@ -97,6 +105,34 @@ Více v [Bezpečný kód](dev_4_bezpecny_kod.md)
 - **SAML** - xml protokol pro výměnu autentizačních a autorizačních dat, starší než oauth/oidc
 - **Kerberos** - na rozdíl od oauth2 a openid connect používá v základu symetrickou kryptografii (např. uživatelovo heslo je na autorizačním serveru, uživatel posílá pouze svou identitu a server vrací přístupová data šifrovaná heslem uživatele)
 
+#### Digitální podpis
+
+- slouží k ověření integrity a identity autora
+- odesílatel vytvoří hash zprávy a zašifruje ho svým privátním klíčem
+- příjemce pomocí veřejného klíče podpis ověří
+- zajišťuje:
+  - autenticitu
+  - integritu
+  - nepopiratelnost (non-repudiation)
+
+#### PKI (Public Key Infrastructure)
+
+- infrastruktura pro správu certifikátů a veřejných klíčů
+- obsahuje:
+  - Certificate Authority (CA)
+  - certifikáty
+  - revokační seznamy (CRL)
+  - pravidla důvěry
+
+#### Certifikát
+
+- propojuje identitu subjektu s veřejným klíčem
+- certifikát je podepsán certifikační autoritou
+- při ověřování kontrolujeme:
+  - podpis CA
+  - platnost certifikátu
+  - doménu
+  - zda nebyl revokován
 ## Vícevrstvá architektura moderních informačních systémů, architektura model-view-controller (3/6)
 
 Architektury popsány v [otázce 1](dev_1_programovani_a_softwarovy_vyvoj.md#základní-koncepty-softwarových-architektur-z-pohledu-implementace-26), takže jen shrnutí:
@@ -308,6 +344,12 @@ Zabývá se uchováním dat mezi jednotlivými běhy aplikace/restarty systému/
 - **API rate limiting** - ochrana proti abuse
 - **HTTPS everywhere** - TLS certifikáty pro všechnu komunikaci
 
+- omezení počtu požadavků od klienta za časovou jednotku
+- ochrana proti DoS a brute-force útokům
+- implementace:
+  - token bucket
+  - leaky bucket
+  
 ### DevOps workflow
 
 - **Git workflow** - feature branches, pull requests, code review
@@ -357,6 +399,13 @@ Zabývá se uchováním dat mezi jednotlivými běhy aplikace/restarty systému/
 
 - nejpoužívanější styl/způsob tvorby rozhraní webových aplikací (ne protokol), vychází z HTTP, požadavek má syntax `<metoda> <uri>`
 - zdroje identifikovány URI, mohou mít různou podobu (JSON, XML, HTML, PNG...)
+- **URI (Uniform Resource Identifier)** - obecný identifikátor zdroje
+- **URL (Uniform Resource Locator)** - konkrétní typ URI obsahující lokaci zdroje a způsob přístupu
+- každé URL je URI, ale ne každé URI je URL
+
+Příklad:
+- URI: `urn:isbn:0451450523`
+- URL: `https://example.com/users/1`
 - užívá HTTP metod:
   - **GET** - pro získání dat
   - **HEAD** - pro získání metadat - hlavička je totožná s GET, ale v odpovědi není přítomno tělo

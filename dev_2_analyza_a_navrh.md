@@ -30,6 +30,38 @@ Mezi metody se řadí:
 - **Cohesion (soudržnost)** - míra souvislosti funkcionality uvnitř komponenty.
   - cílem je vysoká cohesion
 
+    Vysoká cohesion (dobře)
+    ```python
+    class UserRepository {
+        User findById(...)
+        void save(...)
+        void delete(...)
+    }
+    ```
+    Všechno se týká práce s uživateli v databázi.
+
+    Jedna odpovědnost → vysoká cohesion.
+
+    Nízká cohesion (špatně)
+    ```python
+    class UserManager {
+        User findById(...)
+        void sendEmail(...)
+        void generatePDF(...)
+        void calculateSalary(...)
+        void exportToCSV(...)
+    }
+    ```
+    Třída dělá spoustu nesouvisejících věcí:
+
+    databáze
+    emaily
+    PDF
+    mzdy
+    export
+
+    Nemá jasnou odpovědnost → nízká cohesion.
+
 Dobře navržený systém:
 - vysoká cohesion
 - nízký coupling

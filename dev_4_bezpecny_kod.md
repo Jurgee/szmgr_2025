@@ -10,6 +10,30 @@
 6. [Typické bezpečnostní chyby na úrovni kódu, souběžnost, ošetření vstupů (6/7)](#typické-bezpečnostní-chyby-na-úrovni-kódu-souběžnost-ošetření-vstupů-67)
 7. [Detekce bezpečnostních zranitelností, penetrační testování (7/7)](#detekce-bezpečnostních-zranitelností-penetrační-testování-77)
 
+## Bezpečnostní cíle systému (CIA)
+
+Základní vlastnosti bezpečného systému:
+
+- **Confidentiality (důvěrnost)** – data jsou dostupná pouze oprávněným subjektům
+  - šifrování
+  - řízení přístupu
+  - autentizace
+
+- **Integrity (integrita)** – data nebyla neoprávněně změněna
+  - hashovací funkce
+  - digitální podpis
+  - kontrolní součty
+
+- **Availability (dostupnost)** – systém a data jsou dostupná oprávněným uživatelům
+  - redundance
+  - zálohování
+  - ochrana proti DoS/DDoS útokům
+
+Příklady útoků:
+- Confidentiality → odcizení databáze, odposlech komunikace
+- Integrity → změna obsahu databáze, podvržení zprávy
+- Availability → DDoS útok, ransomwarový útok
+
 ## Metody autentizace a řízení přístupu (1/7)
 
 **Klíčové pojmy**
@@ -287,6 +311,19 @@ Některé algoritmy umožňují obnovu dat na základě podpisu (v podpisu jsou 
 - generování klíčových dat (např. key-pair pro asymetrickou kryptografii)
 - doložení a ověření identifikačních informací (např. pro web předáme údaje o identitě a instalujeme *Certbot*, nebo nahrajeme určitý soubor, abychom dokázali, že máme nad serverem kontrolu)
 - vydání certifikátu žadateli (včetně zveřejnění v adresářové službě)
+
+### Revokace certifikátů
+
+Certifikát může být zneplatněn před vypršením platnosti.
+
+Důvody:
+- kompromitace soukromého klíče
+- změna identity vlastníka
+- chyba při vystavení certifikátu
+
+Mechanismy:
+- CRL (Certificate Revocation List)
+- OCSP (Online Certificate Status Protocol)
 
 ## Autentizace strojů a aplikací (4/7)
 

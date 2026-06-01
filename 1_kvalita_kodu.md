@@ -103,6 +103,32 @@ Klasifikace metrik:
 - **Lines of Code (LOC)** - může být hrubým odhadem úsilí, užitečné pro porovnání napříč releasy
 - **(Non)Commented lines of code (CLOC)** – řádky obsahující komentář vs. bez komentáře
 - **(LOC vs. CLOC)**: Nestačí jen vědět, co to je. Ráček se ptá na výhody a nevýhody. Nevýhodou je silná závislost na použitém programovacím jazyce a stylu programátora.
+
+  **Výhody LOC**
+  - jednoduchá a levná metrika
+  - snadno automaticky měřitelná
+  - lze odhadovat velikost projektu
+  - používá se v modelech odhadu pracnosti (např. COCOMO)
+
+  **Nevýhody**
+  - neříká nic o kvalitě kódu
+  - více řádků ≠ lepší software
+  - závisí na programovacím jazyce
+  - lze ji snadno uměle navyšovat
+  - nebere v úvahu složitost algoritmů
+
+  **Výhody CLOC**
+  - ukazuje míru dokumentace kódu
+  - pomáhá při údržbě systému
+  - usnadňuje onboarding nových vývojářů
+  - lze sledovat poměr dokumentace vůči kódu
+  
+  **Nevýhody**
+  - komentáře mohou být zastaralé
+  - příliš mnoho komentářů může signalizovat nečitelný kód
+  - nelze z nich přímo odvozovat kvalitu
+  - některé komentáře jsou zbytečné
+
 - **Počet tříd**
 - **Počet funkcí/metod**
 - **Počet packages**

@@ -39,13 +39,11 @@ Pro konkrétní projekt je potřeba si zvolit vhodný přístup **prediktivní**
 
 #### Agilní plánování
 
-Dále je potřeba u plánování projektů sepsat Project Charter popisující základní informace o projektu (proč, co, kdo, kdy, jak, za kolik...), sepsat podrobnosti klíčových strategií (komunikace, rizika, kvalita, změny) a nějakým způsobem začít plánovat práci (product backlog, řešení architektury...).
+Agilní plánování je průběžné a adaptivní. Na začátku se stanoví vize produktu, cíle projektu a vytvoří se product backlog. Detailně se plánuje pouze nejbližší období (release, sprint), zatímco vzdálenější části projektu zůstávají na vyšší úrovni abstrakce a zpřesňují se postupně podle získaných informací.
 
 #### Prediktivní plánování
 
-Sepisuje se **Project Initiation Documentation** obsahující detailní Business Case, veškeré informace o projektu (proč, co, kdo, kdy, jak, za kolik), definují se klíčové strategie (komunikace, rizika, kvalita, změny), vše se dokumentuje, vytváří se příslušné registry, vše se schvaluje product boardem (zástupci exekutivy, inženýrů a zákazníků). Do PID se pak zapisují i změny a průběh, aby bylo možné porovnat plán a realitu, je dostupný všem v rámci projektu.
-
-Dělá se detailní analýza požadavků, spousta Use case diagramů, detailní rozsah sloužící jako základ pro ocenění, design mockupy. Tvoří se **specifikační dokument** produktu - obsahuje požadavky, rozbití systému na komponenty (včetně detailního popisu až po pole vstupních formulářů), očekávanou kvalitu, akceptační kritéria.
+Prediktivní plánování se snaží vytvořit detailní plán projektu již na začátku. Provádí se analýza požadavků, definice rozsahu, tvorba WBS, odhady pracnosti a nákladů, plánování aktivit a zdrojů. Výsledkem bývá harmonogram projektu (např. Ganttův diagram), rozpočet a plán řízení rizik. Konkrétní dokumentace závisí na použité metodice (PMBOK, PRINCE2 apod.).
 
 Dělá se **projektový plán** (proč, co, kdo, kdy, jak, za kolik...) - **Work Breakdown Structure** tvořená ze specifikačního dokumentu, počítá se čas a cena jednotlivých **Work Packages** (součást WBS, nejnižší jednotka) třeba pomocí [PERT](#program-evaluation-and-review-technique-pert), jejich závislosti, tvoříme rozvrh (gantt/network diagram), přiřazujeme odpovědnosti (mělo by jít snadno najít aktivity člověka i všechny spojené s aktivitou). 
 

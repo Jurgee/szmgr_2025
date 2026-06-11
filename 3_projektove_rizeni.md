@@ -139,6 +139,8 @@ ale lze rozšířit...
 
 ### Síťová analýza
 
+Je to způsob, jak si rozplánovat projekt jako **síť úkolů**, které na sebe navazují.
+
 Metody pro modelování souboru činností vedoucích k dosažení nějakého cíle (tj. projektů).
 
 Cílem je projekt naplánovat, minimalizovat prostoje a náklady, určit termíny, celkovou dobu trvání projektů, identifikovat kritické úlohy v projektu.
